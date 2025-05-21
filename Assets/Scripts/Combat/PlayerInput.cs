@@ -2,7 +2,9 @@ using NUnit.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.UI;
 
 public class PlayerInput : MonoBehaviour
@@ -75,7 +77,8 @@ public class PlayerInput : MonoBehaviour
             bool hasHit = Physics.Raycast(ray, out hit);
             if (!hasHit) { return; }
 
-            if (hit.transform.tag == "Tile" && currentSelected.NoActions > 0)
+            if (hit.transform.tag == "Tile" &&
+                currentSelected.NoActions > 0)
             {
                 Vector2Int targetCoords = hit.transform.GetComponent<Tile>().coords;
                 if (turnManager.IsCurrentCharacter(currentSelectedObject) &&
@@ -98,6 +101,7 @@ public class PlayerInput : MonoBehaviour
                     //currentSelected.transform.position = new Vector3(targetCoords.x, currentSelected.transform.position.y, targetCoords.y);
                 }
             }
+            else if (hit.transform.GetComponent<Enemy>() != null) NotifySelection(hit.transform.GetComponent<Enemy>());
         }
 
         if (Input.GetMouseButtonDown(1))
@@ -180,14 +184,14 @@ public class PlayerInput : MonoBehaviour
         {
             cameraMovement += Vector3.left;
         }
-        if (Input.mouseScrollDelta.y > 0)
-        {
-            cameraMovement += Vector3.up;
-        }
-        if (Input.mouseScrollDelta.y < 0)
-        {
-            cameraMovement += Vector3.down;
-        }
+        //if (Input.mouseScrollDelta.y > 0)
+        //{
+        //    cameraMovement += Vector3.up;
+        //}
+        //if (Input.mouseScrollDelta.y < 0)
+        //{
+        //    cameraMovement += Vector3.down;
+        //}
         if (cameraMovement != Vector3.zero)
         {
             cameraMovement.Normalize();
@@ -197,6 +201,7 @@ public class PlayerInput : MonoBehaviour
 
     public void ChangeSelectedAbility(Button button)
     {
+        Debug.Log("Ability Button Pressed!");
         if (currentAbilityButton != null) currentAbilityButton.interactable = true;
         button.interactable = false;
 
@@ -207,17 +212,21 @@ public class PlayerInput : MonoBehaviour
 
     public void NotifySelection(Enemy enemy)
     {
-        if (currentSelectedObject == enemy.gameObject)
-        {
-            return;
-        }
+        if (currentSelectedObject == enemy.gameObject) { return; }
 
         selectionIndicator.ChangeTarget(enemy);
 
         if (currentAbility is StrikeAbility)
         {
             var strikeAbility = (StrikeAbility)currentAbility;
-            if (strikeAbility.NoTargets == 1 && currentSelected.NoActions >= strikeAbility.ActionCost)
+
+            Vector2Int startCoords = gridManager.GetCoordinatesFromPosition(currentSelectedObject.transform.position);
+            Vector2Int targetCoords = gridManager.GetCoordinatesFromPosition(enemy.transform.position);
+            pathfinder.SetNewDestination(startCoords, targetCoords);
+
+            if (strikeAbility.NoTargets == 1 &&
+                currentSelected.NoActions >= strikeAbility.ActionCost &&
+                pathfinder.GetNewPath().Count <= strikeAbility.Range)
             {
                 strikeAbility.Targets.Add(enemy);
                 strikeAbility.Use();

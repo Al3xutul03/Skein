@@ -7,9 +7,9 @@ public class BaseTargetComponent : ITargetComponent
 {
     private Dictionary<AttackType, int> attacks;
 
-    public int MeeleScore { get { return attacks[AttackType.Meele]; } }
-    public int RangedScore { get { return attacks[AttackType.Ranged]; } }
-    public int CastingScore { get { return attacks[AttackType.Casting]; } }
+    public int Meele { get { return attacks[AttackType.Meele]; } }
+    public int Ranged { get { return attacks[AttackType.Ranged]; } }
+    public int Casting { get { return attacks[AttackType.Casting]; } }
 
     private int noCoins;
     private int coinModifier;

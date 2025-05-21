@@ -12,6 +12,12 @@ public class TeamListCell : MonoBehaviour
 
     public void Initialize(Player player)
     {
+        background = transform.GetChild(0).GetComponent<Image>();
+        info = transform.GetChild(1).GetComponent<TextMeshProUGUI>();
+        hp = transform.GetChild(2).GetComponent<TextMeshProUGUI>();
+
+        background.color = Color.cyan;
+
         this.player = player;
         UpdateCell();
     }
@@ -20,15 +26,5 @@ public class TeamListCell : MonoBehaviour
     {
         info.text = $"ID:\n{player.ID}";
         hp.text = player.CurrentHP.ToString() + "/" + player.MaxHP.ToString();
-    }
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Awake()
-    {
-        background = transform.GetChild(0).GetComponent<Image>();
-        info = transform.GetChild(1).GetComponent<TextMeshProUGUI>();
-        hp = transform.GetChild(2).GetComponent<TextMeshProUGUI>();
-
-        background.color = Color.cyan;
     }
 }

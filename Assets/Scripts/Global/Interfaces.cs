@@ -32,11 +32,21 @@ public interface ICharacter : IComparable<ICharacter>
     void Mark(IEnumerable<ICharacter> targets);
 
     void GetNotification(Modifier modifier);
+    void DeleteSelf();
 
     // UI Getters
     int MaxHP { get; }
     int CurrentHP { get; }
     int TempHP { get; }
+
+    int Meele { get; }
+    int Ranged { get; }
+    int Casting { get; }
+
+    int ArmorClass { get; }
+    int Fortitude { get; }
+    int Reflex { get; }
+    int Will { get; }
 }
 
 public interface IHealthComponent
@@ -44,7 +54,6 @@ public interface IHealthComponent
     int MaxHealth { get; }
     int CurrentHealth { get; }
     int TempHP { get; }
-    int WoundedLevel { get; }
     HashSet<AttackTag> Immunities { get; }
     Dictionary<AttackTag, int> Resistances { get; }
 
@@ -67,6 +76,10 @@ public interface IDefenseComponent
 
 public interface ITargetComponent
 {
+    int Meele { get; }
+    int Ranged { get; }
+    int Casting { get; }
+
     void Attack(IEnumerable<ICharacter> targets, AttackType attackType, DefenseType defenseType, List<Modifier> attackModifiers, Dictionary<AttackTag, int> damages, Dictionary<SuccessLevel, Modifier> resultModifiers);
     void Heal(IEnumerable<ICharacter> targets, int value);
     void Heal(IEnumerable<ICharacter> targets, float percentage);

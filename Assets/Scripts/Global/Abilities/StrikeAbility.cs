@@ -14,6 +14,7 @@ public class StrikeAbility : IAbility
     public AbilityType AbilityType { get { return ability.AbilityType; } }
     public int ActionCost { get { return ability.ActionCost; } }
     public int StressCost { get { return ability.StressCost; } }
+    public int Range { get { return Owner.Weapon.Range; } }
 
     private List<ICharacter> targets = new List<ICharacter>();
     public List<ICharacter> Targets { get { return targets; } }

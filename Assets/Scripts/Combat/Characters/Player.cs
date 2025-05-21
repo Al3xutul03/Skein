@@ -23,6 +23,15 @@ public class Player : MonoBehaviour, ICharacter
     public int CurrentHP { get { return character.CurrentHP; } }
     public int TempHP { get { return character.TempHP; } }
 
+    public int Meele { get { return character.Meele; } }
+    public int Ranged { get { return character.Ranged; } }
+    public int Casting { get { return character.Casting; } }
+
+    public int ArmorClass { get { return character.ArmorClass; } }
+    public int Fortitude { get { return character.Fortitude; } }
+    public int Reflex { get { return character.Reflex; } }
+    public int Will { get { return character.Will; } }
+
     public void Initialize(ICharacter character) { this.character = character; }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -74,5 +83,10 @@ public class Player : MonoBehaviour, ICharacter
     public void GetNotification(Modifier modifier)
     {
         character.GetNotification(modifier);
+    }
+
+    public void DeleteSelf()
+    {
+        Destroy(this);
     }
 }

@@ -11,14 +11,9 @@ public class TeamList : MonoBehaviour
 
     public void UpdatePlayer(Player player) { teamListDictionary[player].UpdateCell(); }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public void Initialize(IEnumerable<Player> players)
     {
         GameObject teamListCellPrefab = Resources.Load<GameObject>("Prefabs/UI/Combat/TeamList/TeamListCell");
-
-        var turnManagerObject = GameObject.FindWithTag("TurnManager");
-        turnManager = turnManagerObject.GetComponent<TurnManager>();
-        var players = turnManagerObject.GetComponentsInChildren<Player>();
         teamListDictionary = new Dictionary<Player, TeamListCell>();
 
         foreach ( Player player in players )

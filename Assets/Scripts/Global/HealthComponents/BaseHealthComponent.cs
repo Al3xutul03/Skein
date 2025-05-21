@@ -15,9 +15,6 @@ public class BaseHealthComponent : IHealthComponent
     private int tempHP;
     public  int TempHP { get { return tempHP; } }
 
-    private int woundedLevel;
-    public  int WoundedLevel { get { return woundedLevel; } }
-
 
     private HashSet<AttackTag> immunities;
     public  HashSet<AttackTag> Immunities { get { return immunities; } }
@@ -38,7 +35,6 @@ public class BaseHealthComponent : IHealthComponent
         this.maxHealth = maxHealth;
         this.currentHealth = maxHealth;
         this.tempHP = 0;
-        this.woundedLevel = 0;
         this.immunities = immunities;
         this.resistances = resistances;
     }
@@ -55,12 +51,6 @@ public class BaseHealthComponent : IHealthComponent
         else
         {
             currentHealth -= finalDamage;
-        }
-
-        if (currentHealth <= 0)
-        {
-            currentHealth = maxHealth + currentHealth;
-            woundedLevel++;
         }
     }
 
@@ -83,7 +73,7 @@ public class BaseHealthComponent : IHealthComponent
 
     public bool IsAlive()
     {
-        return currentHealth > 0 && woundedLevel < 5;
+        return currentHealth > 0;
     }
 
     private int ComputeFinalDamage(SuccessLevel successLevel, Dictionary<AttackTag, int> damages)

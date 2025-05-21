@@ -46,6 +46,9 @@ public class GridManager : MonoBehaviour
                 GetNode(coords).isWalkable = false;
             }
         }
+
+        PlayerUI playerUI = GameObject.FindWithTag("PlayerUI").GetComponent<PlayerUI>();
+        playerUI.Initialize(playerCoords.Values);
     }
 
     public Node GetNode(Vector2Int position)

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Character : ICharacter
@@ -41,11 +42,20 @@ public class Character : ICharacter
     public int CurrentHP { get { return healthComponent.CurrentHealth; } }
     public int TempHP { get { return healthComponent.TempHP; } }
 
+    public int Meele { get { return targetComponent.Meele; } }
+    public int Ranged { get { return targetComponent.Ranged; } }
+    public int Casting { get { return targetComponent.Casting; } }
+
+    public int ArmorClass { get { return defenseComponent.ArmorClass; } }
+    public int Fortitude { get { return defenseComponent.Fortitude; } }
+    public int Reflex { get { return defenseComponent.Reflex; } }
+    public int Will { get { return defenseComponent.Will; } }
+
     private IHealthComponent healthComponent;
     private IDefenseComponent defenseComponent;
     private ITargetComponent targetComponent;
 
-    public Character(ICharacter owner, int id, int level, List<IAbility> abilities, IWeapon weapon, List<IItem> equppedItems, IHealthComponent healthComponent, IDefenseComponent defenseComponent, ITargetComponent targetComponent)
+    public Character(int id, int level, List<IAbility> abilities, IWeapon weapon, List<IItem> equppedItems, IHealthComponent healthComponent, IDefenseComponent defenseComponent, ITargetComponent targetComponent)
     {
         this.id = id;
         this.level = level;
@@ -60,6 +70,8 @@ public class Character : ICharacter
         List<bool> coinResults = new List<bool>();
         this.initiative = roller.Roll(out coinResults);
     }
+
+    public void Initialize(ICharacter owner) { this.owner = owner; }
 
     public void StartTurn()
     {
@@ -112,5 +124,10 @@ public class Character : ICharacter
     public void GetNotification(Modifier modifier)
     {
         throw new System.NotImplementedException();
+    }
+
+    public void DeleteSelf()
+    {
+        owner.DeleteSelf();
     }
 }

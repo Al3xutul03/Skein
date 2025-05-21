@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerUI : MonoBehaviour
@@ -8,10 +10,17 @@ public class PlayerUI : MonoBehaviour
     private ProgressBar hpBar;
     private TempHPLabel tempHPLabel;
     private ActionDisplay actionDisplay;
+    private TeamList teamList;
+    private AbilityManager abilityManager;
 
     private Player displayedPlayer;
 
     private Dictionary<UIUpdateType, Action> updateDictionary;
+
+    public void Initialize(IEnumerable<Player> players)
+    {
+        UpdateTeamList(players);
+    }
 
     public void ChangeDisplayedPlayer(Player player)
     {
@@ -33,11 +42,13 @@ public class PlayerUI : MonoBehaviour
         hpBar = GetComponentInChildren<ProgressBar>();
         tempHPLabel = GetComponentInChildren<TempHPLabel>();
         actionDisplay = GetComponentInChildren<ActionDisplay>();
+        abilityManager = transform.GetChild(4).GetComponentInChildren<AbilityManager>();
 
         updateDictionary = new Dictionary<UIUpdateType, Action>
         {
             { UIUpdateType.Health, UpdateHealth },
             { UIUpdateType.Actions, UpdateActions },
+            { UIUpdateType.Abilities, UpdateAbilities }
         };
     }
 
@@ -52,9 +63,20 @@ public class PlayerUI : MonoBehaviour
     {
         actionDisplay.NoActions = displayedPlayer.NoActions;
     }
+
+    private void UpdateTeamList(IEnumerable<Player> players)
+    {
+        teamList = transform.GetChild(3).GetComponent<TeamList>();
+        teamList.Initialize(players);
+    }
+
+    private void UpdateAbilities()
+    {
+        abilityManager.ChangeList(displayedPlayer);
+    }
 }
 
 public enum UIUpdateType
 {
-    Health, Actions 
+    Health, Actions, Abilities
 }
