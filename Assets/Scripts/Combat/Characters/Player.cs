@@ -47,6 +47,10 @@ public class Player : MonoBehaviour, ICharacter
         
     }
 
+    void OnMouseEnter() { playerInput.NotifyMouseEnter(this); }
+
+    void OnMouseExit() { playerInput.NotifyMouseExit(this); }
+
     void OnMouseDown()
     {
         playerInput.NotifySelection(this);

@@ -11,6 +11,7 @@ public class CharacterManager : MonoBehaviour
 
     private Dictionary<Character, List<IAbility>> abilityMap = new Dictionary<Character, List<IAbility>>();
     private Dictionary<Button, CharacterPannel> pannelMap = new Dictionary<Button, CharacterPannel>();
+    private List<string> names = new List<string> { "Fighter", "Rogue", "Cleric"};
 
     public void SelectPannel(Button button)
     {
@@ -56,7 +57,7 @@ public class CharacterManager : MonoBehaviour
         for (var i = 0; i < 3; i++)
         {
             var currentPannel = transform.GetChild(i).GetComponent<CharacterPannel>();
-            currentPannel.Initialize(abilityMap[characterList[i]], characterList[i]);
+            currentPannel.Initialize(abilityMap[characterList[i]], characterList[i], names[i]);
 
             pannelMap.Add(transform.parent.GetChild(2).GetChild(i).GetComponent<Button>(), currentPannel);
         }

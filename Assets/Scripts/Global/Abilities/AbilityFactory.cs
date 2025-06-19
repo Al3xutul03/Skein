@@ -48,7 +48,7 @@ public class AbilityFactory
             actionCost: 2,
             stressCost: 0);
 
-        BuffAbility buffAbility = new BuffAbility(ability, 1, 1, 0, 0);
+        BuffAbility buffAbility = new BuffAbility(ability, 10, 1, 1, 0, 0);
         list.Add(buffAbility);
 
         return list;
@@ -102,7 +102,7 @@ public class AbilityFactory
             actionCost: 1,
             stressCost: 0);
 
-        BuffAbility buffAbility = new BuffAbility(ability, 1, 1, 0, 0);
+        BuffAbility buffAbility = new BuffAbility(ability, 10, 1, 1, 0, 0);
         list.Add(buffAbility);
 
         ability = new Ability(
@@ -114,7 +114,7 @@ public class AbilityFactory
             actionCost: 2,
             stressCost: 0);
 
-        buffAbility = new BuffAbility(ability, 1, 0, 1, 0);
+        buffAbility = new BuffAbility(ability, 10, 1, 0, 1, 0);
         list.Add(buffAbility);
 
         return list;

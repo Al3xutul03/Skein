@@ -48,6 +48,10 @@ public class Enemy : MonoBehaviour, ICharacter
 
     }
 
+    void OnMouseEnter() { playerInput.NotifyMouseEnter(this); }
+
+    void OnMouseExit() { playerInput.NotifyMouseExit(this); }
+
     IEnumerator EnemyTurn()
     {
         yield return new WaitForSeconds(1f);

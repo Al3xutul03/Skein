@@ -48,6 +48,12 @@ public class BaseTargetComponent : ITargetComponent
             Roller roller = new Roller(baseModifier, baseBonuses, finalCoinNumber, coinModifier, coinBonuses);
             int finalAttackModifier = roller.Roll(out coinResults);
 
+            int finalBaseBonus = 0, finalCoinBonus = 0;
+            foreach (int bonus in baseBonuses) { finalBaseBonus += bonus; }
+            foreach (int bonus in coinBonuses) { finalCoinBonus += bonus; }
+
+            var attackInfo = GameObject.FindWithTag("AttackInfo").GetComponent<AttackInfo>();
+            attackInfo.SetAttacker(coinResults, finalCoinNumber, baseModifier, noCoins, finalBaseBonus, finalCoinBonus, finalCoinNumber - noCoins, finalAttackModifier);
             target.Defend(defenseType, finalAttackModifier, damages, resultModifiers);
         }
     }
@@ -62,6 +68,12 @@ public class BaseTargetComponent : ITargetComponent
                 target.Modifiers.Add(newModifier);
             }
         }
+
+        var buffInfo = GameObject.FindWithTag("BuffInfo").GetComponent<BuffInfo>();
+        buffInfo.SetText(modifiers);
+
+        var playerInput = GameObject.FindWithTag("PlayerInput").GetComponent<PlayerInput>();
+        playerInput.NotifyBuff();
     }
 
     public void Heal(IEnumerable<ICharacter> targets, int value)

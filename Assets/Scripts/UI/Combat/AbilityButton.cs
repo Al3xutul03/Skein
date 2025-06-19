@@ -16,7 +16,7 @@ public class AbilityButton : MonoBehaviour
         this.description = description;
 
         Button button = GetComponent<Button>();
-        button.onClick.RemoveAllListeners();
+        //button.onClick.RemoveAllListeners();
         button.onClick.AddListener(() => description.SetAbility(ability));
 
         this.ability = ability;

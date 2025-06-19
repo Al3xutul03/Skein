@@ -47,12 +47,20 @@ public class BaseDefenseComponent : IDefenseComponent
         int finalDefenseModifier = roller.Roll(out coinResults);
 
         int finalDifference = attackModifier - finalDefenseModifier;
+
+        int finalBaseBonus = 0, finalCoinBonus = 0;
+        foreach (int bonus in baseBonuses) { finalBaseBonus += bonus; }
+        foreach (int bonus in coinBonuses) { finalCoinBonus += bonus; }
+
+        var attackInfo = GameObject.FindWithTag("AttackInfo").GetComponent<AttackInfo>();
+        attackInfo.SetDefender(coinResults, finalCoinNumber, baseModifier, noCoins, finalBaseBonus, finalCoinBonus, finalCoinNumber - noCoins, finalDefenseModifier);
+
         switch (finalDifference)
         {
-            case >= 5: return SuccessLevel.CriticalSuccess;
-            case >= 0: return SuccessLevel.Success;
-            case >= -5: return SuccessLevel.Failure;
-            case < -5: return SuccessLevel.CriticalFailure;
+            case >= 5: attackInfo.SetResult(SuccessLevel.CriticalSuccess); return SuccessLevel.CriticalSuccess;
+            case >= 0: attackInfo.SetResult(SuccessLevel.Success); return SuccessLevel.Success;
+            case >= -5: attackInfo.SetResult(SuccessLevel.Failure); return SuccessLevel.Failure;
+            case < -5: attackInfo.SetResult(SuccessLevel.CriticalFailure); return SuccessLevel.CriticalFailure;
         }
     }
 }

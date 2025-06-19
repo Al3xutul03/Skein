@@ -13,6 +13,7 @@ public class CharacterPannel : MonoBehaviour
     public GameObject SelectedAbilities { get { return selectedAbilities; } }
     private GameObject availableAbilities;
     private TextMeshProUGUI HP;
+    private TextMeshProUGUI classText;
 
     private SelectedAbilityButton selectedAbilityButton;
 
@@ -27,12 +28,13 @@ public class CharacterPannel : MonoBehaviour
         this.selectedAbilityButton.transform.GetComponent<Button>().transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = selectedAbilityButton.Ability.Name;
     }
 
-    public void Initialize(IEnumerable<IAbility> abilities, Character character)
+    public void Initialize(IEnumerable<IAbility> abilities, Character character, string name)
     {
         statView = transform.GetChild(0).GetComponent<StatView>();
         selectedAbilities = transform.GetChild(1).GetChild(0).gameObject;
         availableAbilities = transform.GetChild(2).GetChild(0).gameObject;
         HP = transform.GetChild(3).GetComponent<TextMeshProUGUI>();
+        classText = transform.GetChild(6).GetComponent<TextMeshProUGUI>();
 
         this.character = character;
 
@@ -66,5 +68,6 @@ public class CharacterPannel : MonoBehaviour
         statView.SetStat(StatViewType.Will, character.Will);
 
         HP.text = $"Max Health: {character.MaxHP}";
+        classText.text = name;
     }
 }

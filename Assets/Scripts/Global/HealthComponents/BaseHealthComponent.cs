@@ -52,6 +52,14 @@ public class BaseHealthComponent : IHealthComponent
         {
             currentHealth -= finalDamage;
         }
+
+        var attackInfo = GameObject.FindWithTag("AttackInfo").GetComponent<AttackInfo>();
+        attackInfo.SetDamage(finalDamage);
+
+        var playerInput = GameObject.FindWithTag("PlayerInput").GetComponent<PlayerInput>();
+        playerInput.NotifyStrike();
+
+        Debug.Log($"Damage taken: {finalDamage}");
     }
 
     public void ApplyHealing(int healing)

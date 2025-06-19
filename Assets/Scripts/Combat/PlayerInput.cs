@@ -6,13 +6,21 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.UI;
+using static UnityEngine.EventSystems.EventTrigger;
 
-public class PlayerInput : MonoBehaviour
+public class PlayerInput : MonoBehaviour, IObserver<MonoBehaviour>
 {
     private CombatCamera combatCamera;
     private TurnManager turnManager;
     private GridManager gridManager;
     private PlayerUI playerUI;
+
+    private EnemyStatus enemyStatus;
+    private PlayerStatus playerStatus;
+    private ICharacter shownCharacter;
+
+    private AttackInfo attackInfo;
+    private BuffInfo buffInfo;
 
     private SelectionIndicator selectionIndicator;
     private GameObject currentSelectedObject;
@@ -28,17 +36,51 @@ public class PlayerInput : MonoBehaviour
     [SerializeField]
     private ProgressBar prototypeBar;
 
+    private Timer statusTimer;
+    private Timer attackInfoTimer;
+    private Timer buffInfoTimer;
+
+    [SerializeField]
+    private float statusTime = 0.75f;
+    [SerializeField]
+    private float attackInfoTime = 3.0f;
+    [SerializeField]
+    private float buffInfoTime = 1.5f;
+
+    // Action dictionary for different types of subscribers
+    private Dictionary<Type, Action<MonoBehaviour>> onNextTypes;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         combatCamera = GameObject.FindWithTag("CombatCamera").GetComponent<CombatCamera>();
         turnManager = GameObject.FindWithTag("TurnManager").GetComponent<TurnManager>();
         gridManager = GameObject.FindWithTag("GridManager").GetComponent<GridManager>();
+        enemyStatus = GameObject.FindWithTag("CombatUI").GetComponentInChildren<EnemyStatus>();
+        playerStatus = GameObject.FindWithTag("CombatUI").GetComponentInChildren<PlayerStatus>();
+        attackInfo = GameObject.FindWithTag("CombatUI").GetComponentInChildren<AttackInfo>();
+        buffInfo = GameObject.FindWithTag("CombatUI").GetComponentInChildren<BuffInfo>();
         playerUI = GameObject.FindWithTag("PlayerUI").GetComponent<PlayerUI>();
         selectionIndicator = GameObject.FindWithTag("SelectionIndicator").GetComponent<SelectionIndicator>();
+        statusTimer = transform.GetChild(0).GetComponent<Timer>();
+        attackInfoTimer = transform.GetChild(1).GetComponent<Timer>();
+        buffInfoTimer = transform.GetChild(2).GetComponent<Timer>();
+
+        statusTimer.Subscribe(this);
+        statusTimer.SetTimer(statusTime);
+
+        attackInfoTimer.Subscribe(this);
+        attackInfoTimer.SetTimer(attackInfoTime);
+
+        buffInfoTimer.Subscribe(this);
+        buffInfoTimer.SetTimer(buffInfoTime);
+
         currentSelectedObject = null;
+        currentAbilityButton = null;
+        currentAbility = null;
 
         pathfinder = GameObject.FindWithTag("Pathfinder").GetComponent<Pathfinder>();
+        onNextTypes = new Dictionary<Type, Action<MonoBehaviour>> { { typeof(Timer), OnNextTimer } };
     }
 
     // Update is called once per frame
@@ -104,12 +146,12 @@ public class PlayerInput : MonoBehaviour
             else if (hit.transform.GetComponent<Enemy>() != null) NotifySelection(hit.transform.GetComponent<Enemy>());
         }
 
-        if (Input.GetMouseButtonDown(1))
-        {
-            currentAbilityButton.interactable = true;
-            currentAbilityButton = null;
-            currentAbility = null;
-        }
+        //if (Input.GetMouseButtonDown(1))
+        //{
+            //currentAbilityButton.interactable = true;
+            //currentAbilityButton = null;
+            //currentAbility = null;
+        //}
     }
 
     private void RecalculatePath(bool resetPath)
@@ -206,8 +248,10 @@ public class PlayerInput : MonoBehaviour
         button.interactable = false;
 
         var abilityButton = button.GetComponent<AbilityButton>();
-        currentAbilityButton = button;
-        currentAbility = abilityButton.Ability;
+        this.currentAbilityButton = button;
+        this.currentAbility = abilityButton.Ability;
+        Debug.Log($"Button ID: {currentAbilityButton.GetInstanceID()}");
+        Debug.Log($"Ability Name: {currentAbility.Name}");
     }
 
     public void NotifySelection(Enemy enemy)
@@ -215,9 +259,12 @@ public class PlayerInput : MonoBehaviour
         if (currentSelectedObject == enemy.gameObject) { return; }
 
         selectionIndicator.ChangeTarget(enemy);
+        Debug.Log("Selection Registered");
+        if (currentAbility == null) Debug.Log("No Ability Selected!");
 
-        if (currentAbility is StrikeAbility)
+        if (currentSelected != null && currentAbility is StrikeAbility)
         {
+            Debug.Log("Strike Ability detected");
             var strikeAbility = (StrikeAbility)currentAbility;
 
             Vector2Int startCoords = gridManager.GetCoordinatesFromPosition(currentSelectedObject.transform.position);
@@ -226,11 +273,14 @@ public class PlayerInput : MonoBehaviour
 
             if (strikeAbility.NoTargets == 1 &&
                 currentSelected.NoActions >= strikeAbility.ActionCost &&
-                pathfinder.GetNewPath().Count <= strikeAbility.Range)
+                pathfinder.GetNewPath().Count - 1 <= strikeAbility.Range)
             {
                 strikeAbility.Targets.Add(enemy);
                 strikeAbility.Use();
+                strikeAbility.Targets.Clear();
             }
+
+            playerUI.UpdatePlayerUIElement(UIUpdateType.Actions);
         }
 
         currentSelectedObject = enemy.gameObject;
@@ -239,13 +289,110 @@ public class PlayerInput : MonoBehaviour
 
     public void NotifySelection(Player player)
     {
-        if (currentSelectedObject == player.gameObject)
-        {
-            return;
-        }
+        if (currentSelectedObject == player.gameObject) { return; }
 
         selectionIndicator.ChangeTarget(player);
+        Debug.Log("Selection Registered");
+        if (currentAbility == null) Debug.Log("No Ability Selected!");
+
+        if (currentSelected != null && currentAbility is BuffAbility)
+        {
+            Debug.Log("Buff Ability detected");
+            var buffAbility = (BuffAbility)currentAbility;
+
+            Vector2Int startCoords = gridManager.GetCoordinatesFromPosition(currentSelectedObject.transform.position);
+            Vector2Int targetCoords = gridManager.GetCoordinatesFromPosition(player.transform.position);
+            pathfinder.SetNewDestination(startCoords, targetCoords);
+
+            if (buffAbility.Owner.ID == currentSelected.ID &&
+                buffAbility.NoTargets == 1 &&
+                currentSelected.NoActions >= buffAbility.ActionCost &&
+                pathfinder.GetNewPath().Count - 1 <= buffAbility.Range)
+            {
+                buffAbility.Targets.Add(player);
+                buffAbility.Use();
+                buffAbility.Targets.Clear();
+            }
+
+            playerUI.UpdatePlayerUIElement(UIUpdateType.Actions);
+        }
+
         currentSelectedObject = player.gameObject;
         currentSelected = player;
+    }
+
+    public void NotifyMouseEnter(ICharacter character)
+    {
+        statusTimer.SetTimer(statusTime);
+        statusTimer.StartTimer();
+        shownCharacter = character;
+    }
+
+    public void NotifyMouseExit(ICharacter character)
+    {
+        statusTimer.StopTimer();
+        statusTimer.ResetTimer();
+
+        if (shownCharacter is Enemy) { enemyStatus.Show(false); }
+        else { playerStatus.Show(false); }
+    }
+
+    public void NotifyStrike()
+    {
+        attackInfo.Show(true);
+        attackInfoTimer.SetTimer(attackInfoTime);
+        attackInfoTimer.StartTimer();
+    }
+
+    public void NotifyBuff()
+    {
+        Vector2 mouseScreenPos = Input.mousePosition;
+        Vector2 localPoint;
+
+        bool success = RectTransformUtility.ScreenPointToLocalPointInRectangle(GameObject.FindWithTag("CombatUI").GetComponent<RectTransform>(),
+            mouseScreenPos, null, out localPoint);
+
+        var rectTransform = buffInfo.gameObject.GetComponent<RectTransform>();
+        rectTransform.anchoredPosition = localPoint + new Vector2(rectTransform.rect.width, rectTransform.rect.height) / 2;
+        buffInfo.Show(true);
+        buffInfoTimer.SetTimer(buffInfoTime);
+        buffInfoTimer.StartTimer();
+    }
+
+    public void OnCompleted() { }
+
+    public void OnError(Exception error) { Debug.LogError(error); }
+
+    public void OnNext(MonoBehaviour monoBehaviour) { onNextTypes[monoBehaviour.GetType()](monoBehaviour); }
+
+    public void OnNextTimer(MonoBehaviour timer)
+    {
+        if (timer == statusTimer)
+        {
+            Vector2 mouseScreenPos = Input.mousePosition;
+            Vector2 localPoint;
+
+            bool success = RectTransformUtility.ScreenPointToLocalPointInRectangle(GameObject.FindWithTag("CombatUI").GetComponent<RectTransform>(),
+                mouseScreenPos, null, out localPoint);
+
+            if (shownCharacter is Enemy)
+            {
+                var rectTransform = enemyStatus.gameObject.GetComponent<RectTransform>();
+                rectTransform.anchoredPosition = localPoint + new Vector2(rectTransform.rect.width, rectTransform.rect.height) / 2;
+                enemyStatus.SetText(shownCharacter.ID, shownCharacter.CurrentHP, shownCharacter.MaxHP);
+                enemyStatus.Show(true);
+            }
+            else
+            {
+                var rectTransform = playerStatus.gameObject.GetComponent<RectTransform>();
+                rectTransform.anchoredPosition = localPoint + new Vector2(rectTransform.rect.width, rectTransform.rect.height) / 2;
+                playerStatus.SetText(shownCharacter as Player);
+                playerStatus.Show(true);
+            }
+        }
+
+        if (timer == attackInfoTimer) { attackInfo.Show(false); }
+
+        if (timer == buffInfoTimer) { buffInfo.Show(false); }
     }
 }

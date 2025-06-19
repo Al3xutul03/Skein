@@ -87,6 +87,7 @@ public class Character : ICharacter
 
     public void Attack(IEnumerable<ICharacter> targets, AttackType attackType, DefenseType defenseType, Dictionary<AttackTag, int> damages, Dictionary<SuccessLevel, Modifier> resultModifiers)
     {
+        Debug.Log($"ID:{this.id} prepares an attack!");
         var attackModifiers = modifiers.Where(modifier => modifier.HasAttackType(attackType)).ToList();
         targetComponent.Attack(targets, attackType, defenseType, attackModifiers, damages, resultModifiers);
     }
@@ -95,6 +96,8 @@ public class Character : ICharacter
     {
         var defenseModifiers = modifiers.Where(modifier => modifier.HasDefenseType(defenseType)).ToList();
         SuccessLevel successLevel = defenseComponent.IsHit(defenseType, attackModifier, defenseModifiers);
+
+        Debug.Log($"ID:{this.id} defends! Attack Success Level: {successLevel.ToString()}");
 
         healthComponent.ApplyDamage(successLevel, damages);
         var newModifier = new Modifier(this, resultModifiers[successLevel]);

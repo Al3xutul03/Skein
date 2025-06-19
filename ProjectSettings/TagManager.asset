@@ -14,6 +14,9 @@ TagManager:
   - Pathfinder
   - InitiativeTracker
   - PlayerUI
+  - CombatUI
+  - AttackInfo
+  - BuffInfo
   layers:
   - Default
   - TransparentFX

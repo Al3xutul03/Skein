@@ -24,6 +24,8 @@ public class StrikeAbility : IAbility
 
     private List<Modifier> modifiers;
 
+    private Dictionary<SuccessLevel, Modifier> successModifiers;
+
     public StrikeAbility(Ability ability, int noTargets, int basicBonus, int coinBonus, int coinNumberBonus)
     {
         this.ability = ability;
@@ -44,13 +46,25 @@ public class StrikeAbility : IAbility
                 new HashSet<AttackType>(){ Owner.Weapon.AttackType },
                 new HashSet<DefenseType>{ DefenseType.ArmorClass })
         };
+
+        var newModifier = new Modifier(Owner, 0,
+                new HashSet<ModifierTag>(), new HashSet<AttackType>(), new HashSet<DefenseType>());
+
+        successModifiers = new Dictionary<SuccessLevel, Modifier>
+        {
+            { SuccessLevel.CriticalSuccess, newModifier },
+            { SuccessLevel.Success, newModifier },
+            { SuccessLevel.Failure, newModifier },
+            { SuccessLevel.CriticalFailure, newModifier },
+        };
     }
 
     public void Use()
     {
         foreach (var modifier in modifiers) { Owner.Modifiers.Add(modifier); }
         
-        Owner.Attack(targets, Owner.Weapon.AttackType, DefenseType.ArmorClass, Owner.Weapon.Damages, new Dictionary<SuccessLevel, Modifier>());
+        Owner.Attack(targets, Owner.Weapon.AttackType, DefenseType.ArmorClass, Owner.Weapon.Damages, successModifiers);
+        Owner.NoActions -= ability.ActionCost;
 
         foreach (var modifier in modifiers) { Owner.Modifiers.Remove(modifier); }
     }
